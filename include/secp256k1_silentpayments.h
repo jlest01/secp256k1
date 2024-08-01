@@ -110,7 +110,9 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int secp256k1_silentpayments_sender_c
 SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int secp256k1_silentpayments_test_outputs(
     const secp256k1_context *ctx,
     const secp256k1_silentpayments_recipient *recipients,
-    size_t n_recipients
+    size_t n_recipients,
+    unsigned char *out_pubkeys,
+    size_t n_out_pubkeys
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2);
 
 /** Create Silent Payment label tweak and label.

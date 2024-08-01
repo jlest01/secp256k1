@@ -111,7 +111,11 @@ const unsigned char* label_lookup(
 }
 
 int main(void) {
-    enum { N_TX_INPUTS = 2, N_TX_OUTPUTS = 3 };
+    enum { N_TX_INPUTS = 2, N_TX_OUTPUTS = 3, N_OUT_PUBKEYS = 198 };
+
+    int n_out_pubkeys = N_OUT_PUBKEYS;
+    unsigned char out_pubkeys[N_OUT_PUBKEYS];
+
     unsigned char randomize[32];
     unsigned char xonly_print[32];
     secp256k1_xonly_pubkey tx_inputs[N_TX_INPUTS];
@@ -219,8 +223,17 @@ int main(void) {
             generated_output_ptrs[i] = &generated_outputs[i];
         }
 
-        ret = secp256k1_silentpayments_test_outputs(ctx, recipients, N_TX_OUTPUTS);
+        ret = secp256k1_silentpayments_test_outputs(
+            ctx, 
+            recipients, 
+            N_TX_OUTPUTS, 
+            out_pubkeys, 
+            n_out_pubkeys
+        );
         assert(ret);
+
+        printf("out_pubkeys: ");
+        print_hex(out_pubkeys, n_out_pubkeys);
         
         ret = secp256k1_silentpayments_sender_create_outputs(ctx,
             generated_output_ptrs,
