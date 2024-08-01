@@ -139,6 +139,57 @@ static int secp256k1_silentpayments_create_output_pubkey(const secp256k1_context
     return ret;
 }
 
+static void print_hex(unsigned char* data, size_t size) {
+    size_t i;
+    printf("0x");
+    for (i = 0; i < size; i++) {
+        printf("%02x", data[i]);
+    }
+    printf("\n");
+}
+
+int secp256k1_silentpayments_test_outputs(
+    const secp256k1_context *ctx,
+    const secp256k1_silentpayments_recipient *recipients,
+    size_t n_recipients
+) {
+    size_t i;
+    int ret = 1;
+    
+    
+    for (i = 0; i < n_recipients; i++) {
+        ARG_CHECK(recipients[i].index == i);
+    }
+
+    for (i = 0; i < n_recipients; i++) {
+        unsigned char compressed_scan_pubkey[33];
+        unsigned char compressed_spend_pubkey[33];
+        size_t len;
+
+        printf("index: %ld\n", recipients[i].index);
+
+        /* Serialize pubkey1 in a compressed form (33 bytes), should always return 1 */
+        len = sizeof(compressed_scan_pubkey);
+        ret = secp256k1_ec_pubkey_serialize(ctx, compressed_scan_pubkey, &len, &recipients[i].scan_pubkey, SECP256K1_EC_COMPRESSED);
+        /* Should be the same size as the size of the output, because we passed a 33 byte array. */
+        VERIFY_CHECK(len == sizeof(compressed_scan_pubkey));
+
+        len = sizeof(compressed_spend_pubkey);
+        ret = secp256k1_ec_pubkey_serialize(ctx, compressed_spend_pubkey, &len, &recipients[i].spend_pubkey, SECP256K1_EC_COMPRESSED);
+        /* Should be the same size as the size of the output, because we passed a 33 byte array. */
+        VERIFY_CHECK(len == sizeof(compressed_spend_pubkey));
+
+        printf("scan_pubkey: ");
+        print_hex(compressed_scan_pubkey, sizeof(compressed_scan_pubkey));
+
+        printf("spend_pubkey: ");
+        print_hex(compressed_spend_pubkey, sizeof(compressed_spend_pubkey));
+
+    }
+
+    return ret;
+}
+
 int secp256k1_silentpayments_sender_create_outputs(
     const secp256k1_context *ctx,
     secp256k1_xonly_pubkey **generated_outputs,

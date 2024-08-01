@@ -218,6 +218,10 @@ int main(void) {
         for (i = 0; i < N_TX_OUTPUTS; i++) {
             generated_output_ptrs[i] = &generated_outputs[i];
         }
+
+        ret = secp256k1_silentpayments_test_outputs(ctx, recipients, N_TX_OUTPUTS);
+        assert(ret);
+        
         ret = secp256k1_silentpayments_sender_create_outputs(ctx,
             generated_output_ptrs,
             recipient_ptrs, N_TX_OUTPUTS,

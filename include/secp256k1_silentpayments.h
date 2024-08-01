@@ -107,6 +107,12 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int secp256k1_silentpayments_sender_c
     size_t n_plain_seckeys
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(5);
 
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int secp256k1_silentpayments_test_outputs(
+    const secp256k1_context *ctx,
+    const secp256k1_silentpayments_recipient *recipients,
+    size_t n_recipients
+) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2);
+
 /** Create Silent Payment label tweak and label.
  *
  *  Given a recipient's scan key b_scan and a label integer m, calculate the
