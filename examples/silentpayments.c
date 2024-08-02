@@ -117,6 +117,10 @@ int main(void) {
     secp256k1_xonly_pubkey *out_pubkeys_ptrs[N_TX_OUTPUTS];
     unsigned char output36[36];
     secp256k1_xonly_pubkey taproot_outputs[N_TX_INPUTS];
+    secp256k1_pubkey plain_outputs[N_TX_INPUTS];
+
+    unsigned char plain_seckeys[N_TX_INPUTS][32];
+    const unsigned char *plain_seckeys_ptrs[N_TX_INPUTS];
 
     unsigned char randomize[32];
     unsigned char xonly_print[32];
@@ -185,6 +189,10 @@ int main(void) {
                 printf("Failed to create keypair\n");
                 return 1;
             }
+            if (!fill_random(plain_seckeys[i], sizeof(plain_seckeys[i]))) {
+                printf("Failed to generate randomness\n");
+                return 1;
+            }
         }
         /*** Create the recipient objects ***/
 
@@ -225,6 +233,25 @@ int main(void) {
             generated_output_ptrs[i] = &generated_outputs[i];
         }
 
+        for (i = 0; i < N_TX_INPUTS; i++) {
+            secp256k1_pubkey pubkey;
+            unsigned char serialized_pubkey[33];
+            size_t len = 33;
+
+            ret = secp256k1_ec_pubkey_create(ctx, &pubkey, plain_seckeys[i]);
+            assert(ret);
+            ret = secp256k1_ec_pubkey_serialize(ctx, serialized_pubkey, &len, &pubkey, SECP256K1_EC_COMPRESSED);
+            assert(ret);
+
+            printf("plain_pubkeys %li:\n", i);
+            print_hex(serialized_pubkey, 33);
+
+
+            plain_seckeys_ptrs[i] = plain_seckeys[i];
+        }
+
+        printf("\n");
+
         for (i = 0; i < N_TX_OUTPUTS; i++) {
             out_pubkeys_ptrs[i] = &out_pubkeys[i];
         }
@@ -236,8 +263,10 @@ int main(void) {
             N_TX_OUTPUTS,
             smallest_outpoint,
             sender_seckey_ptrs, N_TX_INPUTS,
+            plain_seckeys_ptrs, N_TX_INPUTS,
             output36,
-            taproot_outputs
+            taproot_outputs,
+            plain_outputs
         );
         assert(ret);
 
@@ -265,6 +294,9 @@ int main(void) {
             unsigned char serialized_original_xonly_pubkey[32];
             unsigned char serialized_xonly_pubkey[32];
 
+            unsigned char serialized_pubkey[33];
+            size_t len = 33;
+
             ret = secp256k1_keypair_xonly_pub(ctx, &orignal_pubkey, NULL, &sender_seckeys[i]);
             assert(ret);
             ret = secp256k1_xonly_pubkey_serialize(ctx, serialized_original_xonly_pubkey, &orignal_pubkey);
@@ -278,6 +310,13 @@ int main(void) {
             print_hex(serialized_original_xonly_pubkey, 32);
             printf("Taproot Output %li:\n", i);
             print_hex(serialized_xonly_pubkey, 32);
+            
+
+            ret = secp256k1_ec_pubkey_serialize(ctx, serialized_pubkey, &len, &plain_outputs[i], SECP256K1_EC_COMPRESSED);
+            assert(ret);
+
+            printf("Plain Output %li:\n", i);
+            print_hex(serialized_pubkey, 33);
             printf("\n");
         }
         
