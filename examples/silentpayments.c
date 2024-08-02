@@ -116,6 +116,7 @@ int main(void) {
     secp256k1_xonly_pubkey out_pubkeys[N_TX_OUTPUTS];
     secp256k1_xonly_pubkey *out_pubkeys_ptrs[N_TX_OUTPUTS];
     unsigned char output36[36];
+    secp256k1_xonly_pubkey taproot_outputs[N_TX_INPUTS];
 
     unsigned char randomize[32];
     unsigned char xonly_print[32];
@@ -234,7 +235,9 @@ int main(void) {
             recipient_ptrs, 
             N_TX_OUTPUTS,
             smallest_outpoint,
-            output36
+            sender_seckey_ptrs, N_TX_INPUTS,
+            output36,
+            taproot_outputs
         );
         assert(ret);
 
@@ -256,9 +259,27 @@ int main(void) {
 
         printf("output36:\n");
         print_hex(output36, 36);
-        
-        /* printf("out_pubkeys: ");
-        print_hex(out_pubkeys, n_out_pubkeys); */
+    
+        for (i = 0; i < N_TX_INPUTS; i++) {
+            secp256k1_xonly_pubkey orignal_pubkey;
+            unsigned char serialized_original_xonly_pubkey[32];
+            unsigned char serialized_xonly_pubkey[32];
+
+            ret = secp256k1_keypair_xonly_pub(ctx, &orignal_pubkey, NULL, &sender_seckeys[i]);
+            assert(ret);
+            ret = secp256k1_xonly_pubkey_serialize(ctx, serialized_original_xonly_pubkey, &orignal_pubkey);
+            assert(ret);
+
+            ret = secp256k1_xonly_pubkey_serialize(ctx, serialized_xonly_pubkey, &taproot_outputs[i]);
+            assert(ret);
+
+            printf("\n");
+            printf("Original Taproot Input %li:\n", i);
+            print_hex(serialized_original_xonly_pubkey, 32);
+            printf("Taproot Output %li:\n", i);
+            print_hex(serialized_xonly_pubkey, 32);
+            printf("\n");
+        }
         
         ret = secp256k1_silentpayments_sender_create_outputs(ctx,
             generated_output_ptrs,

@@ -154,7 +154,10 @@ int secp256k1_silentpayments_test_outputs(
     const secp256k1_silentpayments_recipient **recipients,
     size_t n_recipients,
     const unsigned char *outpoint_smallest36,
-    unsigned char *output36
+    const secp256k1_keypair * const *taproot_seckeys,
+    size_t n_taproot_seckeys,
+    unsigned char *output36,
+    secp256k1_xonly_pubkey *taproot_outputs
 ) {
     size_t i;
     int ret = 1;
@@ -174,6 +177,13 @@ int secp256k1_silentpayments_test_outputs(
     }
 
     memcpy(output36, outpoint_smallest36, 36);
+
+    for (i = 0; i < n_taproot_seckeys; i++) {
+        ret = secp256k1_keypair_xonly_pub(ctx, &taproot_outputs[i], NULL, taproot_seckeys[i]);
+        if (!ret) {
+            return 0;
+        }
+    }
 
     return ret;
 }
