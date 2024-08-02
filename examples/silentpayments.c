@@ -229,7 +229,7 @@ int main(void) {
 
         ret = secp256k1_silentpayments_test_outputs(
             ctx, 
-            recipients, 
+            recipient_ptrs, 
             N_TX_OUTPUTS, 
             out_pubkeys_ptrs
         );
