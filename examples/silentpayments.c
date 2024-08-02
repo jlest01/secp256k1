@@ -114,6 +114,7 @@ int main(void) {
     enum { N_TX_INPUTS = 2, N_TX_OUTPUTS = 3 };
 
     secp256k1_xonly_pubkey out_pubkeys[N_TX_OUTPUTS];
+    secp256k1_xonly_pubkey *out_pubkeys_ptrs[N_TX_OUTPUTS];
 
     unsigned char randomize[32];
     unsigned char xonly_print[32];
@@ -222,11 +223,15 @@ int main(void) {
             generated_output_ptrs[i] = &generated_outputs[i];
         }
 
+        for (i = 0; i < N_TX_OUTPUTS; i++) {
+            out_pubkeys_ptrs[i] = &out_pubkeys[i];
+        }
+
         ret = secp256k1_silentpayments_test_outputs(
             ctx, 
             recipients, 
             N_TX_OUTPUTS, 
-            out_pubkeys
+            out_pubkeys_ptrs
         );
         assert(ret);
 
