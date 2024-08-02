@@ -152,49 +152,23 @@ int secp256k1_silentpayments_test_outputs(
     const secp256k1_context *ctx,
     const secp256k1_silentpayments_recipient *recipients,
     size_t n_recipients,
-    unsigned char *out_pubkeys,
-    size_t n_out_pubkeys
+    secp256k1_xonly_pubkey *generated_outputs
 ) {
     size_t i;
     int ret = 1;
-    
-    VERIFY_CHECK(n_out_pubkeys == 66 * n_recipients);
     
     for (i = 0; i < n_recipients; i++) {
         ARG_CHECK(recipients[i].index == i);
     }
 
-    /* Initialize out_pubkeys to zero */
-    memset(out_pubkeys, 0, n_out_pubkeys);
-
     for (i = 0; i < n_recipients; i++) {
-        unsigned char *compressed_scan_pubkey = &out_pubkeys[i * 66];
-        unsigned char *compressed_spend_pubkey = &out_pubkeys[i * 66 + 33];
-
-        size_t len;
-
-        // printf("index: %ld\n", recipients[i].index);
-
-        /* Serialize pubkey1 in a compressed form (33 bytes), should always return 1 */
-        len = 33;
-        ret = secp256k1_ec_pubkey_serialize(ctx, compressed_scan_pubkey, &len, &recipients[i].scan_pubkey, SECP256K1_EC_COMPRESSED);
-        /* Should be the same size as the size of the output, because we passed a 33 byte array. */
-        VERIFY_CHECK(len == 33);
-
-        len = 33;
-        ret = secp256k1_ec_pubkey_serialize(ctx, compressed_spend_pubkey, &len, &recipients[i].spend_pubkey, SECP256K1_EC_COMPRESSED);
-        /* Should be the same size as the size of the output, because we passed a 33 byte array. */
-        VERIFY_CHECK(len == 33);
-
-        // printf("scan_pubkey: ");
-        // print_hex(compressed_scan_pubkey, 33);
-
-        // printf("spend_pubkey: ");
-        // print_hex(compressed_spend_pubkey, 33);
-
+        secp256k1_xonly_pubkey new_xonly_pubkey;
+        ret = secp256k1_xonly_pubkey_from_pubkey(ctx, &new_xonly_pubkey, NULL, &recipients[i].scan_pubkey);
+        if (!ret) {
+            return 0;
+        }
+        generated_outputs[i] = new_xonly_pubkey;
     }
-
-    VERIFY_CHECK((i * 66) == n_out_pubkeys);
 
     return ret;
 }

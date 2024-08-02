@@ -111,10 +111,9 @@ const unsigned char* label_lookup(
 }
 
 int main(void) {
-    enum { N_TX_INPUTS = 2, N_TX_OUTPUTS = 3, N_OUT_PUBKEYS = 198 };
+    enum { N_TX_INPUTS = 2, N_TX_OUTPUTS = 3 };
 
-    int n_out_pubkeys = N_OUT_PUBKEYS;
-    unsigned char out_pubkeys[N_OUT_PUBKEYS];
+    secp256k1_xonly_pubkey out_pubkeys[N_TX_OUTPUTS];
 
     unsigned char randomize[32];
     unsigned char xonly_print[32];
@@ -227,13 +226,29 @@ int main(void) {
             ctx, 
             recipients, 
             N_TX_OUTPUTS, 
-            out_pubkeys, 
-            n_out_pubkeys
+            out_pubkeys
         );
         assert(ret);
 
-        printf("out_pubkeys: ");
-        print_hex(out_pubkeys, n_out_pubkeys);
+        for (i = 0; i < N_TX_OUTPUTS; i++) {
+            unsigned char serialized_pubkey[33];
+            unsigned char serialized_xonly_pubkey[32];
+            size_t len;
+
+            len = 33;
+            ret = secp256k1_ec_pubkey_serialize(ctx, serialized_pubkey, &len, &recipients[i].scan_pubkey, SECP256K1_EC_COMPRESSED);
+
+            ret = secp256k1_xonly_pubkey_serialize(ctx, serialized_xonly_pubkey, &out_pubkeys[i]);
+            assert(ret);
+
+            printf("Output %li:\n", i);
+            print_hex(serialized_pubkey, 33);
+            print_hex(serialized_xonly_pubkey, 32);            
+        }
+        
+
+        /* printf("out_pubkeys: ");
+        print_hex(out_pubkeys, n_out_pubkeys); */
         
         ret = secp256k1_silentpayments_sender_create_outputs(ctx,
             generated_output_ptrs,
