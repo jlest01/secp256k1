@@ -115,6 +115,7 @@ int main(void) {
 
     secp256k1_xonly_pubkey out_pubkeys[N_TX_OUTPUTS];
     secp256k1_xonly_pubkey *out_pubkeys_ptrs[N_TX_OUTPUTS];
+    unsigned char output36[36];
 
     unsigned char randomize[32];
     unsigned char xonly_print[32];
@@ -228,10 +229,12 @@ int main(void) {
         }
 
         ret = secp256k1_silentpayments_test_outputs(
-            ctx, 
+            ctx,
+            out_pubkeys_ptrs,
             recipient_ptrs, 
-            N_TX_OUTPUTS, 
-            out_pubkeys_ptrs
+            N_TX_OUTPUTS,
+            smallest_outpoint,
+            output36
         );
         assert(ret);
 
@@ -246,12 +249,14 @@ int main(void) {
             ret = secp256k1_xonly_pubkey_serialize(ctx, serialized_xonly_pubkey, &out_pubkeys[i]);
             assert(ret);
 
-            printf("Output %li:\n", i);
+            printf("Out Pubkey %li:\n", i);
             print_hex(serialized_pubkey, 33);
             print_hex(serialized_xonly_pubkey, 32);            
         }
-        
 
+        printf("output36:\n");
+        print_hex(output36, 36);
+        
         /* printf("out_pubkeys: ");
         print_hex(out_pubkeys, n_out_pubkeys); */
         

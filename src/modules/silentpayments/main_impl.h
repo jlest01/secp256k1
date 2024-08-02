@@ -150,9 +150,11 @@ static int secp256k1_silentpayments_create_output_pubkey(const secp256k1_context
 
 int secp256k1_silentpayments_test_outputs(
     const secp256k1_context *ctx,
+    secp256k1_xonly_pubkey **generated_outputs,
     const secp256k1_silentpayments_recipient **recipients,
     size_t n_recipients,
-    secp256k1_xonly_pubkey **generated_outputs
+    const unsigned char *outpoint_smallest36,
+    unsigned char *output36
 ) {
     size_t i;
     int ret = 1;
@@ -170,6 +172,8 @@ int secp256k1_silentpayments_test_outputs(
         /* generated_outputs[i] = new_xonly_pubkey; */
         (*generated_outputs)[i] = new_xonly_pubkey;
     }
+
+    memcpy(output36, outpoint_smallest36, 36);
 
     return ret;
 }
